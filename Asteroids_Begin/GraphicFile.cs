@@ -8,10 +8,28 @@ namespace MyGame
         private static BufferedGraphicsContext _context;
         public static BufferedGraphics Buffer;
         public static Form thisForm;
+        static int height = 0, width = 0;
+        //public static int Width { get; set; }
 
-        public static int Width { get; set; }
-        public static int Height { get; set; }
-        
+        #region Сделать проверку на задание размера экрана в классе Game. Если высота или ширина (Width, Height) больше 1000 (2000) или принимает отрицательное значение, выбросить исключение ArgumentOutOfRangeException().
+        public static int Width
+        {
+            get { return width; }
+            set
+            {
+                if (value <= 0 || value >= 2000) throw new ArgumentOutOfRangeException();
+                else width = value;
+            }
+        }
+        //public static int Width { get { return  } set { if (value <= 0 || value >= 2000) throw new ArgumentOutOfRangeException(); } }
+        public static int Height
+        {
+            get { return height; }
+            set { if (value <= 0 || value >= 2000) throw new ArgumentOutOfRangeException();
+                else height = value; }
+        }
+        #endregion
+
         static Game()
         {
         }
@@ -22,8 +40,15 @@ namespace MyGame
             // Предоставляет доступ к главному буферу графического контекста для текущего приложения
             _context = BufferedGraphicsManager.Current; // Предоставляет доступ к объекту основного контекста буферизованной графики для домена (тоже понятней некуда.) приложения. Чтобы это не означало.
             g = form.CreateGraphics();
-            Width = form.ClientSize.Width;
-            Height = form.ClientSize.Height;
+            try
+            {
+                Width = form.ClientSize.Width;
+                Height = form.ClientSize.Height;
+            }
+            catch (ArgumentOutOfRangeException)
+            {
+                Console.WriteLine("Значения высоты, или ширины экрана заданы отрицательными, или более 2000.");
+            }
             Buffer = _context.Allocate(g, new Rectangle(0, 0, Width, Height)); // Связываем буфер в памяти с графическим объектом, чтобы рисовать в буфере / Creates a graphics buffer of the specified size using the pixel format of the specified 
             Timer timer = new Timer { Interval = 100 };
             timer.Start();
@@ -39,34 +64,78 @@ namespace MyGame
             //Buffer.Render();
 
             Buffer.Graphics.Clear(Color.Black);
+
             foreach (BaseObject obj in _objs)
                 obj.Draw();
-            Buffer.Render();
+            foreach (BaseObject obj in _asteroids)
+                obj.Draw();            
+                _bullet.Draw();
+        //foreach (BaseObject obj in _objsStar)
+        //    obj.Draw();
+        //foreach (BaseObject obj in _objsAsteroid)
+        //    obj.Draw();
+        //foreach (BaseObject obj in _objsBullet)
+        //    obj.Draw();
+        Buffer.Render();
         }
 
         public static void Update()
         {
+            Random rnd = new Random();
+            foreach (Asteroid obj in _asteroids)
+            {
+                obj.Update();
+                if (obj.Collision(_bullet))
+                {
+                    System.Media.SystemSounds.Hand.Play();
+
+                    # region Сделать так, чтобы при столкновении пули с астероидом они регенерировались в разных концах экрана.
+                    obj.Position = new Point(rnd.Next(Width / 2, Width), rnd.Next(0, Height));
+                    _bullet.Position = new Point(rnd.Next(0, Width / 2), rnd.Next(0, Height));
+                    #endregion
+                };
+            }
             foreach (BaseObject obj in _objs)
                 obj.Update();
-        } 
+            _bullet.Update();
+
+            //foreach (BaseObject obj in _objsStar)
+            //    obj.Update();
+            //foreach (BaseObject obj in _objsAsteroid)
+            //    obj.Update();
+            //foreach (BaseObject obj in _objsBullet)
+            //    obj.Update();
+        }
 
         public static BaseObject[] _objs;
+        //public static Star[] _objsStar;
+        public static Asteroid[] _asteroids;
+        public static Bullet _bullet;
+
         public static void Load()
         {
-            Random r = new Random();
-            _objs = new BaseObject[90];
-
-            #region Добавить свои объекты в иерархию объектов, чтобы получился красивый задний фон, похожий на полет в звездном пространстве.
-            for (int i = 0; i < _objs.Length; i++)
+            try
             {
-                int s = r.Next(4, 20);
-                int h = r.Next(5, Height);
-                if (i % 2 == 0)
-                    _objs[i] = new TrueStar(new Point(Width / 2 + 30, h /*Height / 2*/), new Point( i, 0), new Size(s, s));
-                else
-                    _objs[i] = new TrueStar(new Point(Width / 2 - 30, h /*Height / 2*/), new Point(-i, 0), new Size(s, s));
+                _objs = new BaseObject[30];
+                _bullet = new Bullet(new Point(0, 200), new Point(5, 0), new Size(20, 1));
+                _asteroids = new Asteroid[3];
+                var rnd = new Random();
+                for (int i = 0; i < _objs.Length; i++)
+                {
+                    int r = rnd.Next(5, 50);
+                    _objs[i] = new Star(new Point(100, rnd.Next(0, Game.Height)), new Point(-r, r), new Size(3, 3));
+                }
+                for (int i = 0; i < _asteroids.Length; i++)
+                {
+                    int r = rnd.Next(20, 50);
+                    _asteroids[i] = new Asteroid(new Point(100, rnd.Next(0, Game.Height)), new Point(-r / 2, r), new Size(r, r)/*заме такой размер*/);
+                }
             }
-            #endregion
+            catch (CharacteristicException e)
+            {
+                Console.WriteLine(e.Message);
+            }
+            
         }
         private static void Timer_Tick(object sender, EventArgs e)
         {
