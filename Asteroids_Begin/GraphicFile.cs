@@ -3,15 +3,20 @@ using System.Windows.Forms;
 using System.Drawing;
 namespace MyGame
 {
+    /// <summary>
+    /// Класс описывающий графическую составляющую
+    /// </summary>
     static class Game
     {
         private static BufferedGraphicsContext _context;
         public static BufferedGraphics Buffer;
         public static Form thisForm;
-        static int height = 0, width = 0;
-        //public static int Width { get; set; }
 
-        #region Сделать проверку на задание размера экрана в классе Game. Если высота или ширина (Width, Height) больше 1000 (2000) или принимает отрицательное значение, выбросить исключение ArgumentOutOfRangeException().
+        /// <summary>
+        /// Высота и ширина окна
+        /// </summary>
+        static int height = 0, width = 0;
+
         public static int Width
         {
             get { return width; }
@@ -21,24 +26,27 @@ namespace MyGame
                 else width = value;
             }
         }
-        //public static int Width { get { return  } set { if (value <= 0 || value >= 2000) throw new ArgumentOutOfRangeException(); } }
+
         public static int Height
         {
             get { return height; }
             set { if (value <= 0 || value >= 2000) throw new ArgumentOutOfRangeException();
                 else height = value; }
         }
-        #endregion
 
         static Game()
         {
         }
+
+        /// <summary>
+        /// Метод для инициализации игрового окна
+        /// </summary>
+        /// <param name="form"></param>
         public static void Init(Form form)
         {
             thisForm = form;
-            Graphics g; // вывод графики
-            // Предоставляет доступ к главному буферу графического контекста для текущего приложения
-            _context = BufferedGraphicsManager.Current; // Предоставляет доступ к объекту основного контекста буферизованной графики для домена (тоже понятней некуда.) приложения. Чтобы это не означало.
+            Graphics g;            
+            _context = BufferedGraphicsManager.Current; // Предоставляет доступ к главному буферу графического контекста для текущего приложения / заметка для себя
             g = form.CreateGraphics();
             try
             {
@@ -49,39 +57,40 @@ namespace MyGame
             {
                 Console.WriteLine("Значения высоты, или ширины экрана заданы отрицательными, или более 2000.");
             }
-            Buffer = _context.Allocate(g, new Rectangle(0, 0, Width, Height)); // Связываем буфер в памяти с графическим объектом, чтобы рисовать в буфере / Creates a graphics buffer of the specified size using the pixel format of the specified 
-            Timer timer = new Timer { Interval = 100 };
-            timer.Start();
-            timer.Tick += Timer_Tick;
+            Buffer = _context.Allocate(g, new Rectangle(0, 0, Width, Height)); // Связываем буфер в памяти с графическим объектом, чтобы рисовать в буфере / Creates a graphics buffer of the specified size using the pixel format of the specified / заметка для себя
+
             Load();
+            Timer timer = new Timer { Interval = 100 }; // запуск события в заданный интервал времени
+            timer.Tick += Timer_Tick;
+            timer.Start();
         }
 
+        /// <summary>
+        /// Рисование объектов, и вызов отрисовки в объектах
+        /// </summary>
         public static void Draw()
         {    // Проверяем вывод графики
             Buffer.Graphics.Clear(Color.Black);
-            Buffer.Graphics.DrawRectangle(Pens.White, new Rectangle(100, 100, 200, 200));
-            Buffer.Graphics.FillEllipse(Brushes.Wheat, new Rectangle(100, 100, 200, 200));
-            //Buffer.Render();
-
-            Buffer.Graphics.Clear(Color.Black);
+            //Buffer.Graphics.DrawRectangle(Pens.White, new Rectangle(100, 100, 200, 200));
+            //Buffer.Graphics.FillEllipse(Brushes.Wheat, new Rectangle(100, 100, 200, 200));
+            //Buffer.Graphics.Clear(Color.Black);
 
             foreach (BaseObject obj in _objs)
                 obj.Draw();
             foreach (BaseObject obj in _asteroids)
                 obj.Draw();            
                 _bullet.Draw();
-        //foreach (BaseObject obj in _objsStar)
-        //    obj.Draw();
-        //foreach (BaseObject obj in _objsAsteroid)
-        //    obj.Draw();
-        //foreach (BaseObject obj in _objsBullet)
-        //    obj.Draw();
+
         Buffer.Render();
         }
 
+        /// <summary>
+        /// Обновление состояний и действий объектов для вызова через интервал вызовов в таймере
+        /// </summary>
         public static void Update()
         {
             Random rnd = new Random();
+
             foreach (Asteroid obj in _asteroids)
             {
                 obj.Update();
@@ -89,29 +98,25 @@ namespace MyGame
                 {
                     System.Media.SystemSounds.Hand.Play();
 
-                    # region Сделать так, чтобы при столкновении пули с астероидом они регенерировались в разных концах экрана.
                     obj.Position = new Point(rnd.Next(Width / 2, Width), rnd.Next(0, Height));
                     _bullet.Position = new Point(rnd.Next(0, Width / 2), rnd.Next(0, Height));
-                    #endregion
                 };
             }
+
             foreach (BaseObject obj in _objs)
                 obj.Update();
-            _bullet.Update();
 
-            //foreach (BaseObject obj in _objsStar)
-            //    obj.Update();
-            //foreach (BaseObject obj in _objsAsteroid)
-            //    obj.Update();
-            //foreach (BaseObject obj in _objsBullet)
-            //    obj.Update();
+            _bullet.Update();
         }
 
+        
         public static BaseObject[] _objs;
-        //public static Star[] _objsStar;
         public static Asteroid[] _asteroids;
         public static Bullet _bullet;
 
+        /// <summary>
+        /// Создание игровых объектов
+        /// </summary>
         public static void Load()
         {
             try
@@ -128,15 +133,20 @@ namespace MyGame
                 for (int i = 0; i < _asteroids.Length; i++)
                 {
                     int r = rnd.Next(20, 50);
-                    _asteroids[i] = new Asteroid(new Point(100, rnd.Next(0, Game.Height)), new Point(-r / 2, r), new Size(r, r)/*заме такой размер*/);
+                    _asteroids[i] = new Asteroid(new Point(100, rnd.Next(0, Game.Height)), new Point(-r / 2, r), new Size(r, r));
                 }
             }
             catch (CharacteristicException e)
             {
                 Console.WriteLine(e.Message);
-            }
-            
+            }            
         }
+
+        /// <summary>
+        /// Метод, вызывающийся событием таймера
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private static void Timer_Tick(object sender, EventArgs e)
         {
             Draw();
