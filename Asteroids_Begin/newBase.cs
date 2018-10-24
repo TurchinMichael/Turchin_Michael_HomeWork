@@ -34,11 +34,11 @@ namespace MyGame
             }
             else
             {
-                Bitmap image = new Bitmap(@"D:\C# продвинутый\код для тестирования\по первой методичке\Asteroids_Begin\Asteroids_Begin\obj\Debug\whiteStar.png");
                 Graphics x = splash.thisForm.CreateGraphics();
                 x.DrawImage(image, new Rectangle(Pos.X, Pos.Y, Size.Width, Size.Height));
             }
         }
+        Bitmap image = new Bitmap(@"whiteStar.png");
         public virtual void Update()
         {
             Pos.X = Pos.X + Dir.X;

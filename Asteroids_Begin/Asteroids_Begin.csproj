@@ -43,6 +43,7 @@
     <Compile Include="Asteroids.cs" />
     <Compile Include="BaseClassesFile.cs" />
     <Compile Include="GraphicFile.cs" />
+    <Compile Include="ICollision.cs" />
     <Compile Include="newBase.cs" />
     <Compile Include="SplashScreen.cs" />
   </ItemGroup>

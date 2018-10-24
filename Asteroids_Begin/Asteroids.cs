@@ -10,31 +10,35 @@ namespace MyGame
         public static Label text;
         static void Main(string[] args)
         {
-            Form form = new Form();
-            form.Width = 800;
-            form.Height = 600;
+            Form form = new Form
+            {
+                Width = Screen.PrimaryScreen.Bounds.Width,
+                Height = Screen.PrimaryScreen.Bounds.Height
+            };
+            //form.Width = 800;
+            //form.Height = 600;
 
-            if (MessageBox.Show("Yes = Splash | No = Asteroids", "Start", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
-            {
-                /*
-                 * Разработать собственный класс-заставку SplashScreen, 
-                 * аналогичный классу Game. Создать в нем собственную иерархию объектов и задать их движение. 
-                 * Предусмотреть кнопки «Начало игры», «Рекорды», «Выход». Добавить на заставку имя автора.
-                 */
-                InitForm2(form);
-                splash.Init(form);
-                form.Show();
-                splash.Draw();
-                Application.Run(form);
-            }
-            else
-            {
-                InitForm1(form);
-                Game.Init(form);
-                form.Show();
-                Game.Draw();
-                Application.Run(form);
-            }
+            //if (MessageBox.Show("Yes = Splash | No = Asteroids", "Start", MessageBoxButtons.YesNo, MessageBoxIcon.Question,MessageBoxDefaultButton.Button2) == DialogResult.Yes)
+            //{
+            //    /*
+            //     * Разработать собственный класс-заставку SplashScreen, 
+            //     * аналогичный классу Game. Создать в нем собственную иерархию объектов и задать их движение. 
+            //     * Предусмотреть кнопки «Начало игры», «Рекорды», «Выход». Добавить на заставку имя автора.
+            //     */
+            //InitForm2(form);
+            //splash.Init(form);
+            //form.Show();
+            //splash.Draw();
+            //Application.Run(form);
+            //}
+            //else
+            //{
+            InitForm1(form);
+            Game.Init(form);
+            form.Show();
+            Game.Draw();
+            Application.Run(form);
+            //}
         }
 
         #region SPLASH
