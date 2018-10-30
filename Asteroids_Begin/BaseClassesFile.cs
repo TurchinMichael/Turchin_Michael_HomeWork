@@ -19,12 +19,14 @@ namespace MyGame
     /// </summary>
     abstract class BaseObject : ICollision
     {
-        #region 5. Добавить в пример обобщенный делегат.
+        public static Image bullet = Image.FromFile("bullet.png");
+        public static Image aid = Image.FromFile("aid.png");
+        public static Image asteroid = Image.FromFile("asteroid.png");
+
         /// <summary>
         /// Событие коллизии для отображения в журнале
         /// </summary>
         public static event Action<object, object> JournalCollisionMessage;
-        #endregion
 
         /// <summary>
         /// Событие выстрела для отображения в журнале
@@ -102,7 +104,7 @@ namespace MyGame
         /// </summary>
         public bool Collision(ICollision obj)
         {
-            if (obj.Rect.IntersectsWith(this.Rect))
+            if (obj != null && obj.Rect.IntersectsWith(this.Rect))
                 BaseObject__journalCollisionMessage(this, obj);
             return obj.Rect.IntersectsWith(this.Rect);
         }
@@ -171,7 +173,7 @@ namespace MyGame
     /// <summary>
     /// Объект - астероид, круг вписанный в прямоугольник
     /// </summary>
-    class Asteroid : BaseObject, ICloneable, IComparable<Asteroid>
+    class Asteroid : BaseObject, ICloneable, IComparable<Asteroid>, IDisposable
     {
         public int Power { get; set; }
 
@@ -201,10 +203,12 @@ namespace MyGame
             else
                 return 0;
         }
-
+        
         public override void Draw()
         {
-            Game.Buffer.Graphics.FillEllipse(Brushes.White, Pos.X, Pos.Y, Size.Width, Size.Height);
+            //Game.Buffer.Graphics.FillEllipse(Brushes.White, Pos.X, Pos.Y, Size.Width, Size.Height);
+            //Game.thisForm.CreateGraphics().DrawImage(asteroid, new Rectangle(Pos, Size));
+            Game.Buffer.Graphics.DrawImage(asteroid, new Rectangle(Pos, Size));
         }
 
         public override void Update()
@@ -216,13 +220,17 @@ namespace MyGame
             if (Pos.Y < 0) Dir.Y = -Dir.Y;
             if (Pos.Y > Game.Height) Dir.Y = -Dir.Y;
         }
+
+        public void Dispose()
+        {
+            //asteroid.Dispose();
+        }
     }
 
-    #region 3. Разработать аптечки, которые добавляют энергию
     /// <summary>
     /// Объект - аптечка, круг вписанный в прямоугольник
     /// </summary>
-    class Aid : BaseObject
+    class Aid : BaseObject, IDisposable
     {
         public int Power { get; set; }
 
@@ -233,7 +241,8 @@ namespace MyGame
 
         public override void Draw()
         {
-            Game.Buffer.Graphics.FillEllipse(Brushes.Green, Pos.X, Pos.Y, Size.Width, Size.Height);
+            //Game.Buffer.Graphics.FillEllipse(Brushes.Green, Pos.X, Pos.Y, Size.Width, Size.Height);
+            Game.Buffer.Graphics.DrawImage(aid, new Rectangle(Pos, Size));
         }
 
         public override void Update()
@@ -245,31 +254,36 @@ namespace MyGame
             if (Pos.Y < 0) Dir.Y = -Dir.Y;
             if (Pos.Y > Game.Height) Dir.Y = -Dir.Y;
         }
+        public void Dispose()
+        {
+            //aid.Dispose();
+        }
     }
-    #endregion
 
     /// <summary>
     /// Объект - пуля, прямоугольник
     /// </summary>
-    class Bullet : BaseObject
+    class Bullet : BaseObject, IDisposable
     {
         public Bullet(Point pos, Point dir, Size size) : base(pos, dir, size) // описание конструктора в базовом классе
         {
             Bullet_MessageShot();
         }
 
+        public void Dispose()
+        {
+            //bullet.Dispose();
+        }
+
         public override void Draw()
         {
-            Game.Buffer.Graphics.DrawRectangle(Pens.OrangeRed, Pos.X, Pos.Y, Size.Width, Size.Height);
+            //Game.Buffer.Graphics.DrawRectangle(Pens.OrangeRed, Pos.X, Pos.Y, Size.Width, Size.Height);
+            Game.Buffer.Graphics.DrawImage(bullet, new Rectangle(Pos, Size));
         }
 
         public override void Update()
         {
             Pos.X = Pos.X + Dir.X;
-            //if (Pos.X > Game.Width)
-            //{
-            //    Console.WriteLine("out");
-            //}
         }
     }
 }
