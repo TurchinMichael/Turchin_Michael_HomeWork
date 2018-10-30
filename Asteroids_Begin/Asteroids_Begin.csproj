@@ -44,7 +44,9 @@
     <Compile Include="BaseClassesFile.cs" />
     <Compile Include="GraphicFile.cs" />
     <Compile Include="ICollision.cs" />
+    <Compile Include="secondTask.cs" />
     <Compile Include="Ship.cs" />
+    <Compile Include="ThirdTask.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

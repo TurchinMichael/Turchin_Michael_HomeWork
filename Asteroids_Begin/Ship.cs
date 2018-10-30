@@ -2,7 +2,6 @@
 
 namespace MyGame
 {
-    #region 1. Добавить космический корабль, как описано в уроке
     /// <summary>
     /// Объект - круг, вписанный в прямоугольник, представляющий космический корабль
     /// </summary>
@@ -16,12 +15,10 @@ namespace MyGame
         /// </summary>
         public int Energy => _energy; // только аксессор, без мутатора / заметка для себя
 
-        # region 4. Добавить подсчет очков за сбитые астероиды.
         /// <summary>
         /// Счет количества сбитых астероидов
         /// </summary>
         public int Score { get { return _score; } set { _score = value; } }
-        #endregion
 
         /// <summary>
         /// Событие изменения энергии корабля для отображения в журнале
@@ -84,5 +81,4 @@ namespace MyGame
             MessageDie?.Invoke();
         }
     }
-    #endregion
 }

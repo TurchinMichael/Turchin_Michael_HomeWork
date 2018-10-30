@@ -1,22 +1,19 @@
 ﻿using System.IO;
 using System.Windows.Forms;
+using System.Drawing;
 
 namespace MyGame
 {
-    # region 2.a Добавить ведение журнала в консоль с помощью делегатов;
     public delegate void Message();
     public delegate void EnergyMessage(int energy);
     //public delegate void JournalCollisionMessage(object sender, object receiver); // был создан обобщенный делегат
-    #endregion
 
     /// <summary>
     /// Основная программа
     /// </summary>
     class Program
     {
-        #region 2.b Добавить ведение журнала в файл
         public static StreamWriter streamWriter = new StreamWriter("test.txt");
-        #endregion
 
         static void Main(string[] args)
         {
@@ -26,6 +23,14 @@ namespace MyGame
                 Height = Screen.PrimaryScreen.Bounds.Height
             };
 
+            #region 2 Дана коллекция List<T>. Требуется подсчитать, сколько раз каждый элемент встречается в данной коллекции
+            SecondTask.Second();
+            #endregion
+
+            #region 3 * Дан фрагмент программы
+            ThirdTask.Third();
+            #endregion
+            
             //InitForm1(form);
             Game.Init(form);
             form.Show();

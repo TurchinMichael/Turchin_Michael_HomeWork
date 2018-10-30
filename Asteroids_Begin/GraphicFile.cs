@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Drawing;
 using System.Windows.Forms;
+using System.Collections.Generic;
 
 namespace MyGame
 {
+    //delegate void GameObject<T>(T arg)  where T : BaseObject;
     /// <summary>
     /// Класс описывающий графическую составляющую
     /// </summary>
@@ -72,8 +74,7 @@ namespace MyGame
             Ship.MessageDie += Finish;
             BaseObject.JournalCollisionMessage += BaseObject.BaseObject__journalCollisionMessage;
             BaseObject.MessageShot += BaseObject.Bullet_MessageShot;
-
-
+            
             form.KeyDown += Form_KeyDown;
             Load();
             timer = new Timer { Interval = 100 }; // запуск события в заданный интервал времени
@@ -85,8 +86,8 @@ namespace MyGame
         {
             if (e.KeyCode == Keys.ControlKey)
             {
-                _bullet = new Bullet(new Point(_ship.Rect.X + 10, _ship.Rect.Y + 4), new Point(50, 0), new Size(20, 1));
-                _ship.GetEnergy(rnd.Next(-3, -1));
+                _bullets.Add(new Bullet(new Point(_ship.Rect.X + 10, _ship.Rect.Y + 4), new Point(50, 0), new Size(20, 1)));
+                //_ship.GetEnergy(rnd.Next(-3, -1));
             }
             if (e.KeyCode == Keys.Up) _ship.Up();
             if (e.KeyCode == Keys.Down) _ship.Down();
@@ -105,8 +106,8 @@ namespace MyGame
                 ast?.Draw();
             foreach (Aid aid in _aids)
                 aid?.Draw();
-
-            _bullet?.Draw();
+            foreach (Bullet _bullet in _bullets)
+                _bullet?.Draw();
             _ship?.Draw();
 
             if (_ship != null)
@@ -123,56 +124,89 @@ namespace MyGame
         /// </summary>
         public static void Update()
         {
-            for (int i = 0; i < _asteroids.Length; i++) //foreach (Asteroid astr in _asteroids)
-            {
-                if (_asteroids[i] == null) continue;
-                _asteroids[i].Update();
+            foreach (BaseObject obj in _objs)
+                obj.Update();
+            foreach (BaseObject _bullet in _bullets)
+                _bullet.Update();
 
-                if (!(_bullet is null) && _asteroids[i].Collision(_bullet))
+            for (int b = 0; b < _bullets.Count; b++)
+                if (_bullets[b].Position.X > Width)
                 {
-                    _ship.Score++;
-                    System.Media.SystemSounds.Hand.Play();
-                    _asteroids[i] = null;
-                    _bullet = null;
+                    //_bullets[b].Dispose();
+                    _bullets.RemoveAt(b);
+                    b--;
+                }
+
+            // tempCountNullAsteroids переменная для рассчета количества сбитых астероидов
+            int tcna = 0;
+
+            for (var i = 0; i < _asteroids.Count; i++)
+            {
+                #region 1. Добавить в программу коллекцию астероидов. Как только она заканчивается (все астероиды сбиты), формируется новая коллекция, в которой на один астероид больше.
+                if (_asteroids[i] == null)
+                {
+                    tcna++;
+                    if (tcna == _asteroids.Count)
+                    {
+                        _ship.GetEnergy(30);
+                        createOneMoreAsteroids(ref _asteroids);
+                    }
                     continue;
-                };
-                if (_ship.Collision(_asteroids[i]))
+                }
+                #endregion
+
+
+                _asteroids[i].Update();
+                for (int j = 0; j < _bullets.Count; j++)
+                    if (_asteroids[i] != null && _bullets[j].Collision(_asteroids[i]))
+                    {
+                        System.Media.SystemSounds.Hand.Play();
+                        //_asteroids[i].Dispose();
+                        _asteroids[i] = null;
+                        //_bullets[j].Dispose();
+                        _bullets.RemoveAt(j);
+                        j--;
+                        _ship.Score++;
+                    }
+
+                if (_asteroids[i] != null && _ship.Collision(_asteroids[i]))
                 {
-                    _ship?.GetEnergy(_asteroids[i].Power);
+
+                    _ship.GetEnergy(_asteroids[i].Power);
                     System.Media.SystemSounds.Asterisk.Play();
                 }
-                if (_ship.Energy <= 0) _ship?.Die();
+
+                if (_ship.Energy <= 0) _ship.Die();
             }
 
-            for (int i = 0; i < _aids.Length; i++) //foreach (Asteroid astr in _asteroids)
+            for (var i = 0; i < _aids.Length; i++)
             {
                 if (_aids[i] == null) continue;
                 _aids[i].Update();
 
-                if (!(_bullet is null) && _aids[i].Collision(_bullet))
-                {
-                    System.Media.SystemSounds.Question.Play();
-                    _aids[i] = null;
-                    _bullet = null;
-                    continue;
-                }
-                if (_ship.Collision(_aids[i]))
-                {
-                    _ship?.GetEnergy(_aids[i].Power);
-                    System.Media.SystemSounds.Exclamation.Play();
-                }
+                for (int j = 0; j < _bullets.Count; j++)
+                    if (_aids[i] != null && _bullets[j].Collision(_aids[i]))
+                    {
+                        System.Media.SystemSounds.Hand.Play();
+                        //_aids[i].Dispose();
+                        _aids[i] = null;
+                        //_bullets[j].Dispose();
+                        _bullets.RemoveAt(j);
+                        j--;
+                    }
+
+                if (_aids[i] == null || !_ship.Collision(_aids[i])) continue;
+
+                _ship.GetEnergy(_aids[i].Power);
+                System.Media.SystemSounds.Asterisk.Play();
             }
-
-            foreach (BaseObject obj in _objs)
-                obj.Update();
-
-            _bullet?.Update();
         }
 
         public static Aid[] _aids;
         public static BaseObject[] _objs;
-        public static Asteroid[] _asteroids;
-        public static Bullet _bullet;
+        //public static Asteroid[] _asteroids;
+        public static List<Asteroid> _asteroids = new List<Asteroid>();
+        public static List<Bullet> _bullets = new List<Bullet>();
 
         /// <summary>
         /// Создание игровых объектов
@@ -182,18 +216,20 @@ namespace MyGame
             try
             {
                 _objs = new BaseObject[30];
-                _asteroids = new Asteroid[4];
+                //_asteroids = new Asteroid[4];
+
+                for (int i = 0; i < 4; i++)
+                {
+                    int r = rnd.Next(20, 50);
+                    _asteroids.Add(new Asteroid(new Point(100, rnd.Next(0, Game.Height)), new Point(-r / 2, r), new Size(r, r)));
+                }
+
                 _aids = new Aid[2];
 
                 for (int i = 0; i < _objs.Length; i++)
                 {
                     int r = rnd.Next(5, 50);
                     _objs[i] = new Star(new Point(100, rnd.Next(0, Game.Height)), new Point(-r, r), new Size(3, 3));
-                }
-                for (int i = 0; i < _asteroids.Length; i++)
-                {
-                    int r = rnd.Next(20, 50);
-                    _asteroids[i] = new Asteroid(new Point(100, rnd.Next(0, Game.Height)), new Point(-r / 2, r), new Size(r, r));
                 }
                 for (int i = 0; i < _aids.Length; i++)
                 {
@@ -206,6 +242,23 @@ namespace MyGame
                 Console.WriteLine(e.Message);
             }
         }
+        
+        #region 1 Добавить в программу коллекцию астероидов. Как только она заканчивается (все астероиды сбиты), формируется новая коллекция, в которой на один астероид больше.
+        /// <summary>
+        /// Метод для создания коллекции астероидов, на 1 шт. больше, чем было
+        /// </summary>
+        /// <param name="obj"></param>
+        static void createOneMoreAsteroids(ref List<Asteroid> obj)
+        {
+            int t = obj.Count;
+            obj.Clear();
+            for (int i = 0; i < t + 1; i++)
+            {
+                int r = rnd.Next(20, 50);
+                obj.Add(new Asteroid(new Point(100, rnd.Next(0, Game.Height)), new Point(-r / 2, r), new Size(r, r)));
+            }
+        }
+        #endregion
 
         /// <summary>
         /// Метод заканчивающий игру
